@@ -343,37 +343,58 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "linear-gradient(#f8fafc,#fff)", padding: 24, color: "#0f172a", fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial" }} id="app-root">
       <style dangerouslySetInnerHTML={{__html: `
+  :root{--fs-title:24px;--fs-body:16px;--pad:24px;--gap:12px}
+  #app-root{font-size:var(--fs-body)}
+  .toolbar{flex-wrap:wrap}
+  .toolbar .btn{font-size:14px}
+  .card{padding:16px}
+  .chart{height:220px}
+  .mapbox{height:300px}
+  @media (max-width: 768px) {
+    :root{--fs-title:22px;--fs-body:15px;--pad:16px;--gap:10px}
+    .grid-forecast{grid-template-columns: repeat(3, minmax(0,1fr)) !important}
+    .grid-7{grid-template-columns: repeat(4, minmax(0,1fr)) !important}
+    .chart{height:180px !important}
+    .mapbox{height:260px !important}
+  }
+  @media (max-width: 600px) {
+    :root{--fs-title:20px;--fs-body:15px;--pad:14px;--gap:10px}
+    .grid-7{grid-template-columns: repeat(3, minmax(0,1fr)) !important}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .toolbar .input, .toolbar select{width:100% !important}
+  }
   @media (max-width: 480px) {
-    #app-root{padding:12px !important}
-    #title{font-size:20px !important}
-    .toolbar{gap:8px !important}
+    :root{--fs-title:19px;--fs-body:14px;--pad:12px;--gap:8px}
+    #app-root{padding:var(--pad) !important}
+    #title{font-size:var(--fs-title) !important}
     .toolbar .btn{padding:6px 10px !important}
     .toolbar .input{width:100% !important}
     .grid-forecast{grid-template-columns: repeat(2, minmax(0,1fr)) !important}
-    .chart{height:160px !important}
-    .mapbox{height:240px !important}
     .daily-title{font-size:14px !important}
+    .card{padding:12px !important}
+    .chart{height:160px !important}
+    .mapbox{height:220px !important}
   }
-  @media (max-width: 768px) {
-    .grid-forecast{grid-template-columns: repeat(3, minmax(0,1fr)) !important}
-    .grid-7{grid-template-columns: repeat(4, minmax(0,1fr)) !important}
-  }
-  @media (max-width: 600px) {
+  @media (max-width: 360px) {
+    :root{--fs-title:18px;--fs-body:13px;--pad:10px;--gap:6px}
+    .grid-forecast{grid-template-columns: repeat(1, minmax(0,1fr)) !important}
     .grid-7{grid-template-columns: repeat(2, minmax(0,1fr)) !important}
+    .toolbar{grid-template-columns:1fr !important}
+    .toolbar .btn{font-size:13px !important}
   }
 `}} />
       <div style={{ maxWidth: 1120, margin: "0 auto" }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
-          <div id="title" style={{ fontSize: 24, fontWeight: 700 }}>{T.heading}</div>
+          <div id="title" style={{ fontSize: "var(--fs-title)", fontWeight: 700 }}>{T.heading}</div>
           <div className="toolbar" style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {installPrompt && (<button onClick={doInstall} className="btn" style={{ border: "1px solid #cbd5e1", background: "#fff", padding: "8px 12px", borderRadius: 8 }}>⬇️ {T.install}</button>)}
             <button onClick={() => setLang(lang === 'sr' ? 'en' : 'sr')} className="btn" style={{ border: "1px solid #cbd5e1", background: "#fff", padding: "8px 12px", borderRadius: 8 }}>{lang === 'sr' ? 'EN' : 'SR'}</button>
             <button onClick={handleUseMyLocation} disabled={locating} className="btn" style={{ border: "1px solid #bae6fd", background: "#e0f2fe", padding: "8px 12px", borderRadius: 8 }}>{locating ? "⏳ " + T.locating : "📍 " + T.useMyLocation}</button>
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", minWidth: 0, flex: "1 1 220px" }}>
               <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", opacity: 0.6 }}>🔎</span>
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={T.search} className="input" style={{ padding: "8px 8px 8px 28px", width: 220, border: "1px solid #cbd5e1", borderRadius: 8 }} />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={T.search} className="input" style={{ padding: "8px 8px 8px 28px", width: 220, maxWidth: "100%", border: "1px solid #cbd5e1", borderRadius: 8 }} />
             </div>
-            <select value={city.name} onChange={(e) => { const val = e.target.value; const found = SRB_CITIES.find(c => c.name === val); if (found) setCity(found); }} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 8 }}>
+            <select value={city.name} onChange={(e) => { const val = e.target.value; const found = SRB_CITIES.find(c => c.name === val); if (found) setCity(found); }} style={{ padding: 8, border: "1px solid #cbd5e1", borderRadius: 8, minWidth: 140 }}>
               {cityOptions.map(c => (<option key={c.name} value={c.name}>{c.name}{c.en !== c.name ? " (" + c.en + ")" : ""}</option>))}
             </select>
           </div>
@@ -406,15 +427,15 @@ export default function App() {
                 {error && (<div style={{ marginTop: 12, color: "#dc2626", fontSize: 14 }}>{T.error} ({error})</div>)}
                 {data?.current && !loading && !error && (
                   <div className="grid-forecast" style={{ display: "grid", gridTemplateColumns: "repeat(5,minmax(0,1fr))", gap: 16, marginTop: 16 }}>
-                    <div style={{ padding: 16, borderRadius: 12, background: "#f8fafc" }}>
+                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc" }}>
                       <div style={{ fontSize: 14, color: "#64748b" }}>{T.now}</div>
                       <div style={{ fontSize: 36, fontWeight: 700 }}>{Math.round(data.current.temperature_2m)}°C</div>
                       <div style={{ color: "#475569" }}>{T.feels}: {Math.round(data.current.apparent_temperature)}°C</div>
                     </div>
-                    <div style={{ padding: 16, borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>💧 {T.humidity}: {data.current.relative_humidity_2m}%</div>
-                    <div style={{ padding: 16, borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>🌀 {T.wind}: {Math.round(data.current.wind_speed_10m)} km/h</div>
-                    <div style={{ padding: 16, borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>⟲ {T.pressure}: {Math.round(data.current.surface_pressure)} hPa</div>
-                    <div style={{ padding: 16, borderRadius: 12, background: "#f8fafc" }}>
+                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>💧 {T.humidity}: {data.current.relative_humidity_2m}%</div>
+                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>🌀 {T.wind}: {Math.round(data.current.wind_speed_10m)} km/h</div>
+                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>⟲ {T.pressure}: {Math.round(data.current.surface_pressure)} hPa</div>
+                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc" }}>
                       <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{T.aq}</div>
                       <div style={{ fontSize: 14 }}>{T.pm25}: <span style={{ fontWeight: 600 }}>{airNow?.pm25 ?? "—"}</span> μg/m³</div>
                       <div style={{ fontSize: 14 }}>{T.pm10}: <span style={{ fontWeight: 600 }}>{airNow?.pm10 ?? "—"}</span> μg/m³</div>
@@ -424,7 +445,7 @@ export default function App() {
                 {hourlySeries.length > 0 && (
                   <div style={{ marginTop: 24 }}>
                     <div style={{ marginBottom: 8, fontWeight: 600 }}>24h</div>
-                    <div className="chart" style={{ height: 220, position: "relative", border: "1px solid #e2e8f0", borderRadius: 12, padding: 8 }}>
+                    <div className="chart" style={{ position: "relative", border: "1px solid #e2e8f0", borderRadius: 12, padding: 8 }}>
                       <svg viewBox="0 0 1000 200" preserveAspectRatio="none" style={{ width: "100%", height: "100%" }}>
                         {(() => {
                           const min = chartStats.min, max = chartStats.max;
@@ -445,8 +466,8 @@ export default function App() {
                     <div className="daily-title" style={{ marginBottom: 8, fontWeight: 600 }}>{T.next7}</div>
                     <div className="grid-7" style={{ display: "grid", gridTemplateColumns: "repeat(7,minmax(0,1fr))", gap: 12 }}>
                       {dailyRows.map((d: any) => (
-                        <div key={d.date} style={{ borderRadius: 16, background: "#ffffffb3", border: "1px solid #e2e8f0" }}>
-                          <div style={{ padding: 16 }}>
+                        <div key={d.date} className="card" style={{ borderRadius: 16, background: "#ffffffb3", border: "1px solid #e2e8f0" }}>
+                          <div>
                             <div style={{ fontSize: 14, color: "#64748b" }}>{d.label}</div>
                             <div style={{ fontSize: 28 }}>{WMO[d.code] ?? "🌡️"}</div>
                             <div style={{ marginTop: 8, fontWeight: 600 }}>{Math.round(d.max)}° / {Math.round(d.min)}°C</div>
