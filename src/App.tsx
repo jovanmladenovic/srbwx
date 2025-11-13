@@ -333,7 +333,7 @@ export default function App() {
     try {
       const savedCity = hasLocalStorage() ? localStorage.getItem(LS.lastCity) : null;
       const geoStatus = hasLocalStorage() ? localStorage.getItem(LS.geoStatus) : null;
-      if (savedCity) { const parsed = JSON.parse(savedCity); if (parsed && parsed.lat && parsed.lon) setCity(parsed); return; }
+      if (savedCity) { const parsed = JSON.parse(savedCity); if (parsed && (parsed as any).lat && (parsed as any).lon) setCity(parsed as any); return; }
       if (geoStatus !== "denied") { handleUseMyLocation(); }
     } catch { handleUseMyLocation(); }
   }, []);
@@ -362,6 +362,7 @@ export default function App() {
     .grid-7{grid-template-columns: repeat(3, minmax(0,1fr)) !important}
     .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .toolbar .input, .toolbar select{width:100% !important}
+    .toolbar .search-wrap{width:100% !important}
   }
   @media (max-width: 480px) {
     :root{--fs-title:19px;--fs-body:14px;--pad:12px;--gap:8px}
@@ -369,6 +370,7 @@ export default function App() {
     #title{font-size:var(--fs-title) !important}
     .toolbar .btn{padding:6px 10px !important}
     .toolbar .input{width:100% !important}
+    .toolbar .search-wrap{width:100% !important}
     .grid-forecast{grid-template-columns: repeat(2, minmax(0,1fr)) !important}
     .daily-title{font-size:14px !important}
     .card{padding:12px !important}
@@ -390,7 +392,7 @@ export default function App() {
             {installPrompt && (<button onClick={doInstall} className="btn" style={{ border: "1px solid #cbd5e1", background: "#fff", padding: "8px 12px", borderRadius: 8 }}>⬇️ {T.install}</button>)}
             <button onClick={() => setLang(lang === 'sr' ? 'en' : 'sr')} className="btn" style={{ border: "1px solid #cbd5e1", background: "#fff", padding: "8px 12px", borderRadius: 8 }}>{lang === 'sr' ? 'EN' : 'SR'}</button>
             <button onClick={handleUseMyLocation} disabled={locating} className="btn" style={{ border: "1px solid #bae6fd", background: "#e0f2fe", padding: "8px 12px", borderRadius: 8 }}>{locating ? "⏳ " + T.locating : "📍 " + T.useMyLocation}</button>
-            <div style={{ position: "relative", minWidth: 0, flex: "1 1 220px" }}>
+            <div className="search-wrap" style={{ position: "relative", minWidth: 0, flex: "1 1 220px" }}>
               <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", opacity: 0.6 }}>🔎</span>
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={T.search} className="input" style={{ padding: "8px 8px 8px 28px", width: 220, maxWidth: "100%", border: "1px solid #cbd5e1", borderRadius: 8 }} />
             </div>
