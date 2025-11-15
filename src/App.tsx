@@ -397,7 +397,7 @@ export default function App() {
   const T = STR[lang];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(#f8fafc,#fff)", padding: 24, color: "#0f172a", fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial" }} id="app-root">
+    <div style={{ minHeight: "100vh", display: 'flex', justifyContent: 'center', alignItems: 'center', background: "linear-gradient(#f8fafc,#fff)", padding: 24, color: "#0f172a", fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial" }}>
       <style dangerouslySetInnerHTML={{__html: `
   :root{--fs-title:24px;--fs-body:16px;--pad:24px;--gap:12px}
   #app-root{font-size:var(--fs-body)}
@@ -422,8 +422,6 @@ export default function App() {
   }
   @media (max-width: 480px) {
     :root{--fs-title:19px;--fs-body:14px;--pad:12px;--gap:8px}
-    #app-root{padding:var(--pad) !important}
-    #title{font-size:var(--fs-title) !important}
     .toolbar .btn{padding:6px 10px !important}
     .toolbar .input{width:100% !important}
     .toolbar .search-wrap{width:100% !important}
@@ -441,7 +439,7 @@ export default function App() {
     .toolbar .btn{font-size:13px !important}
   }
 `}} />
-      <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+      <div id="app-root" style={{ width: '100%', maxWidth: 1120, background: '#ffffffb3', borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.1)', padding: 24 }}>
         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 24 }}>
           <div id="title" style={{ fontSize: "var(--fs-title)", fontWeight: 700 }}>{T.heading}</div>
           <div className="toolbar" style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -563,7 +561,7 @@ export default function App() {
           </div>
         </div>
 
-        <div style={{ marginTop: 40, fontSize: 12, color: "#64748b" }}>Data: Open-Meteo • Timezone: Europe/Belgrade</div>
+        <div style={{ marginTop: 16, fontSize: 12, color: "#64748b", textAlign: 'center' }}>Data: Open-Meteo • Timezone: Europe/Belgrade</div>
       </div>
     </div>
   );
@@ -579,5 +577,5 @@ try {
   (function(){ const r = nearestCity(44.0, 21.0); console.assert(typeof r.km === 'number' && r.km > 0, 'nearestCity returns distance'); })();
   (function(){ const s = fmtDay('2025-01-15', 'en'); console.assert(typeof s === 'string' && s.length >= 5, 'fmtDay returns string'); })();
   (function(){ const arr=[1,2,3]; let min=arr[0],max=arr[0]; for(let i=1;i<arr.length;i++){const v=arr[i]; if(v<min)min=v; if(v>max)max=v;} console.assert(min===1&&max===3,'chartStats min/max'); })();
-  (function(){ const s = mapGeoError({} as any, 'en'); console.assert(typeof s === 'string', 'mapGeoError returns string'); })();
+  (function(){ const v = classifyAQ(12, 'pm25', 'en'); console.assert(typeof v.icon === 'string' && typeof v.label === 'string', 'AQ classify returns icon+label'); })();
 } catch {}
