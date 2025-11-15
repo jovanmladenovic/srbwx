@@ -44,7 +44,13 @@ const STR = {
     pm10: "PM10",
     map: "Mapa",
     today: "Danas",
-    install: "Instaliraj aplikaciju"
+    install: "Instaliraj aplikaciju",
+    aqGood: "Dobro",
+    aqSome: "Donekle dobro",
+    aqMed: "Srednje",
+    aqBad: "Loše",
+    aqTerrible: "Užasno",
+    aqUnknown: "Nepoznato"
   },
   en: {
     heading: "Serbia Weather Forecast",
@@ -73,7 +79,13 @@ const STR = {
     pm10: "PM10",
     map: "Map",
     today: "Today",
-    install: "Install app"
+    install: "Install app",
+    aqGood: "Good",
+    aqSome: "Somewhat good",
+    aqMed: "Medium",
+    aqBad: "Bad",
+    aqTerrible: "Terrible",
+    aqUnknown: "Unknown"
   }
 } as const;
 
@@ -114,6 +126,25 @@ async function fetchAirQuality(lat: number, lon: number, signal?: AbortSignal) {
 }
 
 const WMO: Record<number, string> = { 0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 48: "🌫️", 51: "🌦️", 61: "🌧️", 63: "🌧️", 65: "🌧️", 71: "🌨️", 80: "🌧️", 95: "⛈️" };
+
+function classifyAQ(value: number | undefined | null, pollutant: 'pm25' | 'pm10', lang: 'sr' | 'en') {
+  const T = STR[lang];
+  if (value == null || isNaN(Number(value))) return { icon: '❓', label: T.aqUnknown, color: '#64748b' };
+  const v = Number(value);
+  if (pollutant === 'pm25') {
+    if (v <= 10) return { icon: '😀', label: T.aqGood, color: '#16a34a' };
+    if (v <= 20) return { icon: '🙂', label: T.aqSome, color: '#22c55e' };
+    if (v <= 35) return { icon: '😐', label: T.aqMed, color: '#f59e0b' };
+    if (v <= 55) return { icon: '😷', label: T.aqBad, color: '#ef4444' };
+    return { icon: '☠️', label: T.aqTerrible, color: '#991b1b' };
+  } else {
+    if (v <= 20) return { icon: '😀', label: T.aqGood, color: '#16a34a' };
+    if (v <= 40) return { icon: '🙂', label: T.aqSome, color: '#22c55e' };
+    if (v <= 50) return { icon: '😐', label: T.aqMed, color: '#f59e0b' };
+    if (v <= 100) return { icon: '😷', label: T.aqBad, color: '#ef4444' };
+    return { icon: '☠️', label: T.aqTerrible, color: '#991b1b' };
+  }
+}
 
 function fmtDay(d: string, lang: "sr" | "en") {
   const date = new Date(d);
@@ -201,6 +232,26 @@ function InlineLeaflet({ lat, lon, onPick }: { lat: number; lon: number; onPick:
     );
   }
   return <div ref={mapRef} className="mapbox" style={{ height: 300, width: "100%", borderRadius: 16, overflow: "hidden", border: "1px solid #e2e8f0" }} />;
+}
+
+function AirQualityCard({ T, airNow, aqStatus }: { T: any; airNow: { pm25?: number; pm10?: number } | null; aqStatus: { pm25: { icon: string; label: string; color: string }, pm10: { icon: string; label: string; color: string } } }) {
+  return (
+    <div className="card" style={{ borderRadius: 12, background: "#f8fafc" }}>
+      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{T.aq}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 6 }}>
+        <div style={{ fontSize: 14 }}>{T.pm25}: <span style={{ fontWeight: 600 }}>{airNow?.pm25 ?? "—"}</span> μg/m³</div>
+        <div title={aqStatus.pm25.label} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:14, color: aqStatus.pm25.color }}>
+          <span style={{ fontSize: 18 }}>{aqStatus.pm25.icon}</span>
+          <span>{aqStatus.pm25.label}</span>
+        </div>
+        <div style={{ fontSize: 14 }}>{T.pm10}: <span style={{ fontWeight: 600 }}>{airNow?.pm10 ?? "—"}</span> μg/m³</div>
+        <div title={aqStatus.pm10.label} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:14, color: aqStatus.pm10.color }}>
+          <span style={{ fontSize: 18 }}>{aqStatus.pm10.icon}</span>
+          <span>{aqStatus.pm10.label}</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 let swRegistered = false;
@@ -291,10 +342,15 @@ export default function App() {
     if (!air) return null;
     if (air?.hourly?.time) {
       const idx = air.hourly.time.findIndex((t: string) => new Date(t).getTime() <= Date.now()); const i = idx === -1 ? 0 : idx;
-      return { pm25: air.hourly.pm2_5?.[i], pm10: air.hourly.pm10?.[i] };
+      return { pm25: air.hourly.pm2_5?.[i] as number | undefined, pm10: air.hourly.pm10?.[i] as number | undefined };
     }
     return null;
   }, [air]);
+
+  const aqStatus = useMemo(() => ({
+    pm25: classifyAQ(airNow?.pm25, 'pm25', lang),
+    pm10: classifyAQ(airNow?.pm10, 'pm10', lang)
+  }), [airNow, lang]);
 
   useEffect(() => {
     const out: Array<{ level: "info" | "warn" | "danger"; text: string }> = [];
@@ -437,11 +493,7 @@ export default function App() {
                     <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>💧 {T.humidity}: {data.current.relative_humidity_2m}%</div>
                     <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>🌀 {T.wind}: {Math.round(data.current.wind_speed_10m)} km/h</div>
                     <div className="card" style={{ borderRadius: 12, background: "#f8fafc", display: "flex", alignItems: "center", gap: 8 }}>⟲ {T.pressure}: {Math.round(data.current.surface_pressure)} hPa</div>
-                    <div className="card" style={{ borderRadius: 12, background: "#f8fafc" }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{T.aq}</div>
-                      <div style={{ fontSize: 14 }}>{T.pm25}: <span style={{ fontWeight: 600 }}>{airNow?.pm25 ?? "—"}</span> μg/m³</div>
-                      <div style={{ fontSize: 14 }}>{T.pm10}: <span style={{ fontWeight: 600 }}>{airNow?.pm10 ?? "—"}</span> μg/m³</div>
-                    </div>
+                    <AirQualityCard T={T} airNow={airNow} aqStatus={aqStatus} />
                   </div>
                 )}
                 {hourlySeries.length > 0 && (
